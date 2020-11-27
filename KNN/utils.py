@@ -236,7 +236,3 @@ class MinMaxScaler:
 
         return normalized
 
-
-
-
-        raise NotImplementedError
