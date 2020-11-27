@@ -89,10 +89,11 @@ class Distances:
         if p1_l2 == 0 or p2_l2 == 0:
             return dist
 
+        dot_prod = 0.0
         for i in range(len(point1)):
-            dist += point1[i]*point2[i]
+            dot_prod += point1[i]*point2[i]
         # Cosine distance
-        dist = 1-dist/(p1_l2*p2_l2)
+        dist = dist-dot_prod/(p1_l2*p2_l2)
 
         return dist
 
