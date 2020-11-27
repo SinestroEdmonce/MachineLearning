@@ -28,7 +28,7 @@ def f1_score(real_labels, predicted_labels):
         elif real_labels[i] == 0 and predicted_labels[i] == 1:
             fp += 1
 
-    f1 = tp/(tp+0.5*(fp+fn))
+    f1 = float(tp)/(tp+0.5*(fp+fn))
     return f1
 
 
@@ -45,7 +45,14 @@ class Distances:
         :param point2: List[float]
         :return: float
         """
-        raise NotImplementedError
+        assert (len(point1) == len(point2))
+        dist = 0.0
+        for i in range(len(point1)):
+            dist += pow(abs(point1[i] - point2[i]), 3)
+        dist = pow(dist, 1.0/3)
+
+        return dist
+
 
     @staticmethod
     # TODO
@@ -55,17 +62,39 @@ class Distances:
         :param point2: List[float]
         :return: float
         """
-        raise NotImplementedError
+        assert (len(point1) == len(point2))
+        dist = 0.0
+        for i in range(len(point1)):
+            dist += pow(point1[i] - point2[i], 2)
+        dist = pow(dist, 1.0/2)
+
+        return dist
 
     @staticmethod
     # TODO
     def cosine_similarity_distance(point1, point2):
         """
-       :param point1: List[float]
-       :param point2: List[float]
-       :return: float
-       """
-        raise NotImplementedError
+        :param point1: List[float]
+        :param point2: List[float]
+        :return: float
+        """
+        assert (len(point1) == len(point2))
+        dist, p1_l2, p2_l2 = 1.0, 0.0, 0.0
+        for i in range(len(point1)):
+            p1_l2 += pow(point1[i], 2)
+            p2_l2 += pow(point2[i], 2)
+
+        # L2 normalization of p1 and p2
+        p1_l2, p2_l2 = pow(p1_l2, 1.0/2), pow(p2_l2, 1.0/2)
+        if p1_l2 == 0 or p2_l2 == 0:
+            return dist
+
+        for i in range(len(point1)):
+            dist += point1[i]*point2[i]
+        # Cosine distance
+        dist = 1-dist/(p1_l2*p2_l2)
+
+        return dist
 
 
 class HyperparameterTuner:
