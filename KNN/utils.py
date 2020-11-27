@@ -15,7 +15,21 @@ def f1_score(real_labels, predicted_labels):
     :return: float
     """
     assert len(real_labels) == len(predicted_labels)
-    raise NotImplementedError
+    # F1-score = 2 * (precision * recall) / (precision + recall) = tp / (tp + 1/2 * (fp + fn))
+    tp, fp, fn = 0, 0, 0
+    for i in range(len(real_labels)):
+        # True positive
+        if real_labels[i] == 1 and predicted_labels[i] == 1:
+            tp += 1
+        # False negative
+        elif real_labels[i] == 1 and predicted_labels[i] == 0:
+            fn += 1
+        # False positive
+        elif real_labels[i] == 0 and predicted_labels[i] == 1:
+            fp += 1
+
+    f1 = tp/(tp+0.5*(fp+fn))
+    return f1
 
 
 class Distances:
@@ -52,7 +66,6 @@ class Distances:
        :return: float
        """
         raise NotImplementedError
-
 
 
 class HyperparameterTuner:
