@@ -174,11 +174,28 @@ class NormalizationScaler:
         :param features: List[List[float]]
         :return: List[List[float]]
         """
-        raise NotImplementedError
+        normalized = []
+        for x in features:
+            p_l2 = 0.0
+            for i in range(len(x)):
+                p_l2 += pow(x[i], 2)
+            # L2 normalization
+            p_l2 = pow(p_l2, 1.0/2)
+
+            if p_l2 == 0:
+                normalized.append(x)
+            else:
+                x_normalized = [f/p_l2 for f in x]
+                normalized.append(x_normalized)
+
+        return normalized
 
 
 class MinMaxScaler:
     def __init__(self):
+        self.maxf = []
+        self.minf = []
+        self.fit = False
         pass
 
     # TODO: min-max normalize data
@@ -197,4 +214,29 @@ class MinMaxScaler:
         :param features: List[List[float]]
         :return: List[List[float]]
         """
+        if not self.fit:
+            data = np.array(features).T
+            for i in range(len(data)):
+                self.maxf.append(np.max(data[i]))
+                self.minf.append(np.min(data[i]))
+            # Already fit data
+            self.fit = True
+
+        normalized = []
+        for x in features:
+            x_normalized = []
+            for i in range(len(x)):
+                if self.maxf[i] == self.minf[i]:
+                    x_normalized.append(0)
+                else:
+                    f_normalized = (x[i]-self.minf[i]) / (self.maxf[i]-self.minf[i])
+                    x_normalized.append(f_normalized)
+
+            normalized.append(x_normalized)
+
+        return normalized
+
+
+
+
         raise NotImplementedError
