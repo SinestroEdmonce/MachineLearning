@@ -1,6 +1,7 @@
 import numpy as np
 from collections import Counter
 
+
 ############################################################################
 # DO NOT MODIFY CODES ABOVE 
 ############################################################################
@@ -13,6 +14,7 @@ class KNN:
         """
         self.k = k
         self.distance_function = distance_function
+        self.xs, self.ys = [], []
 
     # TODO: save features and lable to self
     def train(self, features, labels):
@@ -27,7 +29,9 @@ class KNN:
         :param features: List[List[float]]
         :param labels: List[int]
         """
-        raise NotImplementedError
+
+        self.xs = features
+        self.ys = labels
 
     # TODO: find KNN of one point
     def get_k_neighbors(self, point):
@@ -38,9 +42,13 @@ class KNN:
         :param point: List[float]
         :return:  List[int]
         """
-        raise NotImplementedError
-		
-	# TODO: predict labels of a list of points
+
+        sorted_zipped = sorted(zip(self.xs, self.ys), key=lambda z: self.distance_function(z[0], point))
+        _, sorted_ys = [list(z) for z in zip(*sorted_zipped)]
+
+        return sorted_ys[0:self.k]
+
+    # TODO: predict labels of a list of points
     def predict(self, features):
         """
         This function takes 2D list of test data points, similar to those from train function. Here, you need to process
@@ -51,7 +59,29 @@ class KNN:
         :param features: List[List[float]]
         :return: List[int]
         """
-        raise NotImplementedError	
+
+        predicted = []
+        for i in range(features):
+            neighbors = self.get_k_neighbors(features[i])
+            predicted_y = self.__vote(neighbors)
+            predicted.append(predicted_y)
+
+        return predicted
+
+    def __vote(self, votes):
+        """
+        This function takes a list of labels of all k neighbours and returns a label for prediction
+        :param votes: List[int]
+        :return: int
+        """
+
+        res = {}
+        for vote in votes:
+            res[vote] += 1
+        # Get the majority of all k labels
+        sorted_votes = sorted(res.items(), key=lambda item: item[1], reverse=True)
+
+        return sorted_votes[0][0]
 
 
 if __name__ == '__main__':
