@@ -55,7 +55,7 @@ def regularized_linear_regression(X, y, lambd):
     return w
 
 
-#Part 1.4
+# Part 1.4
 def tune_lambda(Xtrain, ytrain, Xval, yval):
     """
     Find the best lambda value.
@@ -67,26 +67,31 @@ def tune_lambda(Xtrain, ytrain, Xval, yval):
     Returns:
     - bestlambda: the best lambda you find among 2^{-14}, 2^{-13}, ..., 2^{-1}, 1.
     """
-    #####################################################
-    # TODO 5: Fill in your code here                    #
-    #####################################################		
-    bestlambda = None
-    return bestlambda
+    lambds, best_loss, best_lambda = [pow(2.0, -x) for x in range(15)], float('inf'), None
+    for lambd in lambds:
+        w = regularized_linear_regression(X=Xtrain, y=ytrain, lambd=lambd)
+        mse = mean_square_error(w=w, X=Xval, y=yval)
+        if mse < best_loss:
+            best_lambda = lambd
+            best_loss = mse
+
+    return best_lambda
 
 
 # Part 1.5
-def mapping_data(X, p):
+def mapping_data(X, P):
     """
     Augment the data to [X, X^2, ..., X^p]
     Inputs:
     - X: A numpy array of shape (num_training_samples, D) containing training features
-    - p: An integer that indicates the degree of the polynomial regression
+    - P: An integer that indicates the degree of the polynomial regression
     Returns:
     - X: The augmented dataset. You might find np.insert useful.
     """
-    #####################################################
-    # TODO 6: Fill in your code here                    #
-    #####################################################		
+    raw = X
+    for p in range(2, P+1):
+        x_poly = np.power(raw, p)
+        X = np.column_stack((X, x_poly))
 
     return X
 
