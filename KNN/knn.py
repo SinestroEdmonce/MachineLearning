@@ -61,7 +61,7 @@ class KNN:
         """
 
         predicted = []
-        for i in range(features):
+        for i in range(len(features)):
             neighbors = self.get_k_neighbors(features[i])
             y_predicted = self.__vote(neighbors)
             predicted.append(y_predicted)
@@ -77,6 +77,8 @@ class KNN:
 
         res = {}
         for vote in votes:
+            if vote not in res:
+                res[vote] = 0
             res[vote] += 1
         # Get the majority of all k labels
         sorted_votes = sorted(res.items(), key=lambda item: item[1], reverse=True)

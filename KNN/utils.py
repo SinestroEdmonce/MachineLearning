@@ -127,14 +127,15 @@ class HyperparameterTuner:
         For the same distance function, further break tie by prioritizing a smaller k.
         """
         best_f1 = 0.0
-        for k in range(29, 0, -2):
-            # Iterate over all the distance functions
-            for name, func in distance_funcs.items():
+        # Iterate over all the distance functions
+        for name, func in distance_funcs.items():
+            # Iterate over K
+            for k in range(1, 30, 2):
                 model = KNN(k=k, distance_function=func)
                 model.train(x_train, y_train)
                 y_predicted = model.predict(x_val)
                 f1 = f1_score(y_val, y_predicted)
-                if f1 >= best_f1:
+                if f1 > best_f1:
                     best_f1 = f1
                     # Assign the best values to these variables
                     self.best_k = k
@@ -159,18 +160,20 @@ class HyperparameterTuner:
         First check scaler, prioritizing "min_max_scale" over "normalize" (which will also be the insertion order of scaling_classes). Then follow the same rule as in "tuning_without_scaling".
         """
         best_f1 = 0.0
-        for k in range(29, 0, -2):
-            # Iterate over all the scalers
-            for sname, scaler in scaling_classes.items():
-                x_train_scaled = scaler(x_train)
-                x_val_scaled = scaler(x_val)
-                # Iterate over all the distance functions
-                for fname, func in distance_funcs.items():
+        # Iterate over all the scalers
+        for sname, scaling_class in scaling_classes.items():
+            scaler = scaling_class()
+            x_train_scaled = scaler(features=x_train)
+            x_val_scaled = scaler(features=x_val)
+            # Iterate over all the distance functions
+            for fname, func in distance_funcs.items():
+                # Iterate over K
+                for k in range(1, 30, 2):
                     model = KNN(k=k, distance_function=func)
                     model.train(x_train_scaled, y_train)
                     y_predicted = model.predict(x_val_scaled)
                     f1 = f1_score(y_val, y_predicted)
-                    if f1 >= best_f1:
+                    if f1 > best_f1:
                         best_f1 = f1
                         # Assign the best values to these variables
                         self.best_k = k
