@@ -193,9 +193,6 @@ class NormalizationScaler:
 
 class MinMaxScaler:
     def __init__(self):
-        self.maxf = []
-        self.minf = []
-        self.fit = False
         pass
 
     # TODO: min-max normalize data
@@ -214,22 +211,20 @@ class MinMaxScaler:
         :param features: List[List[float]]
         :return: List[List[float]]
         """
-        if not self.fit:
-            data = np.array(features).T
-            for i in range(len(data)):
-                self.maxf.append(np.max(data[i]))
-                self.minf.append(np.min(data[i]))
-            # Already fit data
-            self.fit = True
+        # Fit data
+        data = np.array(features)
+        maxf = np.max(data, axis=0)
+        minf = np.min(data, axis=0)
 
+        # Min-max normalization
         normalized = []
         for x in features:
             x_normalized = []
             for i in range(len(x)):
-                if self.maxf[i] == self.minf[i]:
+                if maxf[i] == minf[i]:
                     x_normalized.append(0)
                 else:
-                    f_normalized = (x[i]-self.minf[i]) / (self.maxf[i]-self.minf[i])
+                    f_normalized = (x[i]-minf[i]) / (maxf[i]-minf[i])
                     x_normalized.append(f_normalized)
 
             normalized.append(x_normalized)
