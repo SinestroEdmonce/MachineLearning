@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 
+
 ############################################################################
 # DO NOT MODIFY CODES ABOVE 
 # DO NOT CHANGE THE INPUT AND OUTPUT FORMAT
 ############################################################################
 
-###### Part 1.1 ######
+# Part 1.1
 def mean_square_error(w, X, y):
     """
     Compute the mean square error of a model parameter w on a test set X and y.
@@ -17,30 +18,27 @@ def mean_square_error(w, X, y):
     Returns:
     - err: the mean square error
     """
-    #####################################################
-    # TODO 1: Fill in your code here                    #
-    #####################################################
-    err = None
+    n, y_predicted = len(y), np.dot(X, w)
+    err = np.sum(np.power(y - y_predicted, 2), dtype=np.float) / n
     return err
 
-###### Part 1.2 ######
+
+# Part 1.2
 def linear_regression_noreg(X, y):
-  """
-  Compute the weight parameter given X and y.
-  Inputs:
-  - X: A numpy array of shape (num_samples, D) containing features
-  - y: A numpy array of shape (num_samples, ) containing labels
-  Returns:
-  - w: a numpy array of shape (D, )
-  """
-  #####################################################
-  #	TODO 2: Fill in your code here                    #
-  #####################################################		
-  w = None
-  return w
+    """
+    Compute the weight parameter given X and y.
+    Inputs:
+    - X: A numpy array of shape (num_samples, D) containing features
+    - y: A numpy array of shape (num_samples, ) containing labels
+    Returns:
+    - w: a numpy array of shape (D, )
+    """
+    # w* = (X^T X)^(-1) X^T y
+    w = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)), X.T), y)
+    return w
 
 
-###### Part 1.3 ######
+# Part 1.3
 def regularized_linear_regression(X, y, lambd):
     """
     Compute the weight parameter given X, y and lambda.
@@ -51,13 +49,13 @@ def regularized_linear_regression(X, y, lambd):
     Returns:
     - w: a numpy array of shape (D, )
     """
-  #####################################################
-  # TODO 4: Fill in your code here                    #
-  #####################################################		
-    w = None
+    D = np.shape(X)[1]
+    I = np.eye(D, k=0)
+    w = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)+lambd*I), X.T), y)
     return w
 
-###### Part 1.4 ######
+
+#Part 1.4
 def tune_lambda(Xtrain, ytrain, Xval, yval):
     """
     Find the best lambda value.
@@ -74,9 +72,9 @@ def tune_lambda(Xtrain, ytrain, Xval, yval):
     #####################################################		
     bestlambda = None
     return bestlambda
-    
 
-###### Part 1.6 ######
+
+# Part 1.5
 def mapping_data(X, p):
     """
     Augment the data to [X, X^2, ..., X^p]
@@ -89,11 +87,11 @@ def mapping_data(X, p):
     #####################################################
     # TODO 6: Fill in your code here                    #
     #####################################################		
-    
+
     return X
+
 
 """
 NO MODIFICATIONS below this line.
 You should only write your code in the above functions.
 """
-
