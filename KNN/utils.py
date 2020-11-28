@@ -53,7 +53,6 @@ class Distances:
 
         return dist
 
-
     @staticmethod
     # TODO
     def euclidean_distance(point1, point2):
