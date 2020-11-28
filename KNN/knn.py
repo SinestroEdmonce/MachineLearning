@@ -63,8 +63,8 @@ class KNN:
         predicted = []
         for i in range(features):
             neighbors = self.get_k_neighbors(features[i])
-            predicted_y = self.__vote(neighbors)
-            predicted.append(predicted_y)
+            y_predicted = self.__vote(neighbors)
+            predicted.append(y_predicted)
 
         return predicted
 
