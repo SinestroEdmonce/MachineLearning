@@ -108,7 +108,8 @@ class HyperparameterTuner:
     # TODO: find parameters with the best f1 score on validation dataset
     def tuning_without_scaling(self, distance_funcs, x_train, y_train, x_val, y_val):
         """
-        In this part, you need to try different distance functions you implemented in part 1.1 and different values of k (among 1, 3, 5, ... , 29), and find the best model with the highest f1-score on the given validation set.
+        In this part, you need to try different distance functions you implemented in part 1.1 and different values of k (among 1, 3, 5, ... , 29),
+        and find the best model with the highest f1-score on the given validation set.
 		
         :param distance_funcs: dictionary of distance functions (key is the function name, value is the function) you need to try to calculate the distance. Make sure you loop over all distance functions for each k value.
         :param x_train: List[List[int]] training data set to train your KNN model
@@ -125,12 +126,20 @@ class HyperparameterTuner:
 		(this will also be the insertion order in "distance_funcs", to make things easier).
         For the same distance function, further break tie by prioritizing a smaller k.
         """
-        
-        # You need to assign the final values to these variables
-        self.best_k = None
-        self.best_distance_function = None
-        self.best_model = None
-        raise NotImplementedError
+        best_f1 = 0.0
+        for k in range(29, 0, -2):
+            # Iterate over all the distance functions
+            for name, func in distance_funcs.items():
+                model = KNN(k=k, distance_function=func)
+                model.train(x_train, y_train)
+                y_predicted = model.predict(x_val)
+                f1 = f1_score(y_val, y_predicted)
+                if f1 >= best_f1:
+                    best_f1 = f1
+                    # Assign the best values to these variables
+                    self.best_k = k
+                    self.best_distance_function = name
+                    self.best_model = model
 
     # TODO: find parameters with the best f1 score on validation dataset, with normalized data
     def tuning_with_scaling(self, distance_funcs, scaling_classes, x_train, y_train, x_val, y_val):
@@ -149,13 +158,25 @@ class HyperparameterTuner:
         NOTE: When there is a tie, choose the model based on the following priorities:
         First check scaler, prioritizing "min_max_scale" over "normalize" (which will also be the insertion order of scaling_classes). Then follow the same rule as in "tuning_without_scaling".
         """
-        
-        # You need to assign the final values to these variables
-        self.best_k = None
-        self.best_distance_function = None
-        self.best_scaler = None
-        self.best_model = None
-        raise NotImplementedError
+        best_f1 = 0.0
+        for k in range(29, 0, -2):
+            # Iterate over all the scalers
+            for sname, scaler in scaling_classes.items():
+                x_train_scaled = scaler(x_train)
+                x_val_scaled = scaler(x_val)
+                # Iterate over all the distance functions
+                for fname, func in distance_funcs.items():
+                    model = KNN(k=k, distance_function=func)
+                    model.train(x_train_scaled, y_train)
+                    y_predicted = model.predict(x_val_scaled)
+                    f1 = f1_score(y_val, y_predicted)
+                    if f1 >= best_f1:
+                        best_f1 = f1
+                        # Assign the best values to these variables
+                        self.best_k = k
+                        self.best_distance_function = fname
+                        self.best_scaler = sname
+                        self.best_model = model
 
 
 class NormalizationScaler:
@@ -222,9 +243,9 @@ class MinMaxScaler:
             x_normalized = []
             for i in range(len(x)):
                 if maxf[i] == minf[i]:
-                    x_normalized.append(0)
+                    x_normalized.append(0.0)
                 else:
-                    f_normalized = (x[i]-minf[i]) / (maxf[i]-minf[i])
+                    f_normalized = float(x[i]-minf[i]) / (maxf[i]-minf[i])
                     x_normalized.append(f_normalized)
 
             normalized.append(x_normalized)
