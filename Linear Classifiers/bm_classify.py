@@ -1,8 +1,40 @@
 import numpy as np
 
+
 #######################################################
 # DO NOT MODIFY ANY CODE OTHER THAN THOSE TODO BLOCKS #
 #######################################################
+
+def delta(N, D, X, y, w, b, loss="perceptron"):
+    """
+    Obtain the delta of w and b
+    :param N: scalar, number of samples
+    :param D: scalar, number of features
+    :param X: (N, D) all training samples
+    :param y: (N, ) all training labels
+    :param w: (D, ), coefficient
+    :param b: scalar, bias
+    :param loss: the loss that will be applied
+    :return: dw, db: the delta of w and b
+    """
+    dw, db = np.zeros(D), 0.0
+    if loss == "perceptron":
+        # Given the perceptron loss l(w,b) = 1/N sum( max( 0, -y(wx+b) ) )
+        for i in range(N):
+            z = y[i] * (np.dot(w, X[i].T) + b)
+            if z <= 0:
+                dw += -y[i] * X[i]
+                db += -y[i]
+        dw, db = dw / N, db / N
+        return dw, db
+    else:
+        # Given the logistic loss l(w, b) = sum( ln(1+exp( -y(wx+b) )) )
+        for i in range(N):
+            z = y[i] * (np.dot(w, X[i].T) + b)
+            dw += -sigmoid(-z) * y[i] * X[i]
+            db += -sigmoid(-z) * y[i]
+        return dw, db
+
 
 def binary_train(X, y, loss="perceptron", w0=None, b0=None, step_size=0.5, max_iterations=1000):
     """
@@ -29,43 +61,40 @@ def binary_train(X, y, loss="perceptron", w0=None, b0=None, step_size=0.5, max_i
     N, D = X.shape
     assert len(np.unique(y)) == 2
 
-
     w = np.zeros(D)
     if w0 is not None:
         w = w0
-    
+
     b = 0
     if b0 is not None:
         b = b0
 
     if loss == "perceptron":
-        ################################################
-        # TODO 1 : perform "max_iterations" steps of   #
-        # gradient descent with step size "step_size"  #
-        # to minimize perceptron loss                  # 
-        ################################################
-
-        
-        
+        # TODO 1 : perform "max_iterations" steps of
+        # gradient descent with step size "step_size"
+        # to minimize perceptron loss
+        for _ in range(max_iterations):
+            dw, db = delta(N=N, D=D, X=X, y=y - 0.5, w=w, b=b, loss=loss)
+            w -= step_size * dw
+            b -= step_size * db
 
     elif loss == "logistic":
-        ################################################
-        # TODO 2 : perform "max_iterations" steps of   #
-        # gradient descent with step size "step_size"  #
-        # to minimize logistic loss                    # 
-        ################################################
-
-        
+        # TODO 2 : perform "max_iterations" steps of
+        # gradient descent with step size "step_size"
+        # to minimize logistic loss
+        for _ in range(max_iterations):
+            dw, db = delta(N=N, D=D, X=X, y=y - 0.5, w=w, b=b, loss=loss)
+            w -= step_size * dw
+            b -= step_size * db
 
     else:
-        raise "Undefined loss function."
+        raise NotImplementedError
 
     assert w.shape == (D,)
     return w, b
 
 
 def sigmoid(z):
-    
     """
     Inputs:
     - z: a numpy array or a float number
@@ -73,11 +102,8 @@ def sigmoid(z):
     Returns:
     - value: a numpy array or a float number after applying the sigmoid function 1/(1+exp(-z)).
     """
-
-    ############################################
-    # TODO 3 : fill in the sigmoid function    #
-    ############################################
-    
+    # TODO 3 : fill in the sigmoid function
+    value = 1.0 / (1.0 + np.exp(-z))
     return value
 
 
@@ -94,21 +120,21 @@ def binary_predict(X, w, b):
     - preds: N-dimensional vector of binary predictions (either 0 or 1)
     """
     N, D = X.shape
-        
-    #############################################################
-    # TODO 4 : predict DETERMINISTICALLY (i.e. do not randomize)#
-    #############################################################
-  
 
-    assert preds.shape == (N,) 
+    # TODO 4 : predict DETERMINISTICALLY (i.e. do not randomize)
+    preds = np.dot(X, w) + b
+    preds[preds > 0.0] = 1
+    preds[preds <= 0.0] = 0
+
+    assert preds.shape == (N,)
     return preds
 
 
 def multiclass_train(X, y, C,
-                     w0=None, 
+                     w0=None,
                      b0=None,
                      gd_type="sgd",
-                     step_size=0.5, 
+                     step_size=0.5,
                      max_iterations=1000):
     """
     Inputs:
@@ -142,37 +168,30 @@ def multiclass_train(X, y, C,
     w = np.zeros((C, D))
     if w0 is not None:
         w = w0
-    
+
     b = np.zeros(C)
     if b0 is not None:
         b = b0
 
-    np.random.seed(42) #DO NOT CHANGE THE RANDOM SEED IN YOUR FINAL SUBMISSION
+    np.random.seed(42)  # DO NOT CHANGE THE RANDOM SEED IN YOUR FINAL SUBMISSION
     if gd_type == "sgd":
 
         for it in range(max_iterations):
             n = np.random.choice(N)
-            ####################################################
-            # TODO 5 : perform "max_iterations" steps of       #
-            # stochastic gradient descent with step size       #
-            # "step_size" to minimize logistic loss. We already#
-            # pick the index of the random sample for you (n)  #
-            ####################################################			
-        
-        
+            # TODO 5 : perform "max_iterations" steps of
+            # stochastic gradient descent with step size
+            # "step_size" to minimize logistic loss. We already
+            # pick the index of the random sample for you (n)
+            raise NotImplementedError
 
     elif gd_type == "gd":
-        ####################################################
-        # TODO 6 : perform "max_iterations" steps of       #
-        # gradient descent with step size "step_size"      #
-        # to minimize logistic loss.                       #
-        ####################################################
-        
-        
+        # TODO 6 : perform "max_iterations" steps of
+        # gradient descent with step size "step_size"
+        # to minimize logistic loss.
+        raise NotImplementedError
 
     else:
-        raise "Undefined algorithm."
-    
+        raise NotImplementedError
 
     assert w.shape == (C, D)
     assert b.shape == (C,)
@@ -194,15 +213,9 @@ def multiclass_predict(X, w, b):
     C is the number of classes
     """
     N, D = X.shape
-    #############################################################
-    # TODO 7 : predict DETERMINISTICALLY (i.e. do not randomize)#
-    #############################################################
+    # TODO 7 : predict DETERMINISTICALLY (i.e. do not randomize)
 
-    
+    preds = np.zeros(N)
+
     assert preds.shape == (N,)
     return preds
-
-
-
-
-        
