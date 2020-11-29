@@ -204,8 +204,8 @@ def multiclass_train(X, y, C,
             x = X[n]
             P = softmax(np.dot(w, x.T) + b) - y1hot[n]
             dw, db = np.dot(P.reshape(C, 1), x.reshape(1, D)), P
-            w -= dw
-            b -= db
+            w -= step_size * dw
+            b -= step_size * db
 
     elif gd_type == "gd":
         # TODO 6 : perform "max_iterations" steps of
@@ -214,8 +214,8 @@ def multiclass_train(X, y, C,
         for _ in range(max_iterations):
             P = softmax(np.dot(w, X.T) + b[:, None]) - y1hot.T
             dw, db = np.dot(P, X), np.sum(P, axis=1)
-            w -= dw / N
-            b -= db / N
+            w -= step_size * dw / N
+            b -= step_size * db / N
 
     else:
         raise NotImplementedError
