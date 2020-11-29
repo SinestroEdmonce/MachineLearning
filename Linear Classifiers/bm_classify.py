@@ -20,19 +20,16 @@ def delta(N, D, X, y, w, b, loss="perceptron"):
     dw, db = np.zeros(D), 0.0
     if loss == "perceptron":
         # Given the perceptron loss l(w,b) = 1/N sum( max( 0, -y(wx+b) ) )
-        for i in range(N):
-            z = y[i] * (np.dot(w, X[i].T) + b)
-            if z <= 0:
-                dw += -y[i] * X[i]
-                db += -y[i]
-        dw, db = dw / N, db / N
+        z = np.multiply(y, np.dot(X, w) + b)
+        indicators = np.where(z <= 0.0)
+        dw = -np.sum(np.multiply(X[indicators].T, y[indicators]), axis=1) / N
+        db = -np.sum(y[indicators]) / N
         return dw, db
     else:
         # Given the logistic loss l(w, b) = sum( ln(1+exp( -y(wx+b) )) )
-        for i in range(N):
-            z = y[i] * (np.dot(w, X[i].T) + b)
-            dw += -sigmoid(-z) * y[i] * X[i]
-            db += -sigmoid(-z) * y[i]
+        z = np.multiply(y, np.dot(X, w) + b)
+        dw = -np.dot(X.T, np.multiply(sigmoid(-z), y)) / N
+        db = -np.sum(np.multiply(sigmoid(-z), y)) / N
         return dw, db
 
 
@@ -69,12 +66,17 @@ def binary_train(X, y, loss="perceptron", w0=None, b0=None, step_size=0.5, max_i
     if b0 is not None:
         b = b0
 
+    # Transform to (-1, 1) labels
+    y_transformed = np.zeros(N)
+    for i in range(y.shape[0]):
+        y_transformed[i] = -1.0 if y[i] == 0 else 1.0
+
     if loss == "perceptron":
         # TODO 1 : perform "max_iterations" steps of
         # gradient descent with step size "step_size"
         # to minimize perceptron loss
         for _ in range(max_iterations):
-            dw, db = delta(N=N, D=D, X=X, y=y - 0.5, w=w, b=b, loss=loss)
+            dw, db = delta(N=N, D=D, X=X, y=y_transformed, w=w, b=b, loss=loss)
             w -= step_size * dw
             b -= step_size * db
 
@@ -83,7 +85,7 @@ def binary_train(X, y, loss="perceptron", w0=None, b0=None, step_size=0.5, max_i
         # gradient descent with step size "step_size"
         # to minimize logistic loss
         for _ in range(max_iterations):
-            dw, db = delta(N=N, D=D, X=X, y=y - 0.5, w=w, b=b, loss=loss)
+            dw, db = delta(N=N, D=D, X=X, y=y_transformed, w=w, b=b, loss=loss)
             w -= step_size * dw
             b -= step_size * db
 
