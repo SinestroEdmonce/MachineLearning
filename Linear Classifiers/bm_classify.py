@@ -68,7 +68,7 @@ def binary_train(X, y, loss="perceptron", w0=None, b0=None, step_size=0.5, max_i
 
     # Transform to (-1, 1) labels
     y_transformed = np.zeros(N)
-    for i in range(y.shape[0]):
+    for i in range(N):
         y_transformed[i] = -1.0 if y[i] == 0 else 1.0
 
     if loss == "perceptron":
@@ -132,6 +132,17 @@ def binary_predict(X, w, b):
     return preds
 
 
+def softmax(z):
+    """
+    Obtain the softmax of z
+    :param z: (C, N) or (C, ), a numpy array
+    :return:
+    """
+    z -= np.max(z, axis=0)
+    value = np.exp(z) / np.sum(np.exp(z), axis=0)
+    return value
+
+
 def multiclass_train(X, y, C,
                      w0=None,
                      b0=None,
@@ -176,6 +187,12 @@ def multiclass_train(X, y, C,
         b = b0
 
     np.random.seed(42)  # DO NOT CHANGE THE RANDOM SEED IN YOUR FINAL SUBMISSION
+
+    # Transform y to one-hot representation
+    y1hot = np.zeros((N, C))
+    for i in range(N):
+        y1hot[i][y[i]] = 1.0
+
     if gd_type == "sgd":
 
         for it in range(max_iterations):
@@ -184,13 +201,21 @@ def multiclass_train(X, y, C,
             # stochastic gradient descent with step size
             # "step_size" to minimize logistic loss. We already
             # pick the index of the random sample for you (n)
-            raise NotImplementedError
+            x = X[n]
+            P = softmax(np.dot(w, x.T) + b) - y1hot[n]
+            dw, db = np.dot(P.reshape(C, 1), x.reshape(1, D)), P
+            w -= dw
+            b -= db
 
     elif gd_type == "gd":
         # TODO 6 : perform "max_iterations" steps of
         # gradient descent with step size "step_size"
         # to minimize logistic loss.
-        raise NotImplementedError
+        for _ in range(max_iterations):
+            P = softmax(np.dot(w, X.T) + b[:, None]) - y1hot.T
+            dw, db = np.dot(P, X), np.sum(P, axis=1)
+            w -= dw / N
+            b -= db / N
 
     else:
         raise NotImplementedError
@@ -217,7 +242,8 @@ def multiclass_predict(X, w, b):
     N, D = X.shape
     # TODO 7 : predict DETERMINISTICALLY (i.e. do not randomize)
 
-    preds = np.zeros(N)
+    y = np.dot(X, w.T) + b
+    preds = np.argmax(y, axis=1)
 
     assert preds.shape == (N,)
     return preds
