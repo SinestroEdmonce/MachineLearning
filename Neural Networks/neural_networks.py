@@ -86,7 +86,7 @@ class linear_layer:
 
         N, _ = X.shape
         self.gradient['W'] = np.dot(X.T, grad)
-        self.gradient['b'] = np.sum(grad, axis=0) / N
+        self.gradient['b'] = np.sum(grad, axis=0)
         backward_output = np.dot(grad, self.params['W'].T)
 
         return backward_output
