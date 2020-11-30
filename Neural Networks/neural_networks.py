@@ -43,7 +43,7 @@ class linear_layer:
         # TODO: Initialize the following two (gradients) with zeros
         #   - self.gradient['W']
         #   - self.gradient['b']
-        self.gradient['W'] = np.zeros(input_D, output_D)
+        self.gradient['W'] = np.zeros((input_D, output_D))
         self.gradient['b'] = np.zeros(output_D)
 
     def forward(self, X):
