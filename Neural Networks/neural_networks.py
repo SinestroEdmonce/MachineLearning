@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import json
 
+
 ###################################
 #   Only modify the TODO blocks   #
 ###################################
@@ -12,7 +13,6 @@ import json
 
 # 1. One linear Neural Network layer with forward and backward steps
 class linear_layer:
-
     """
         The linear (affine/fully-connected) module.
 
@@ -30,29 +30,23 @@ class linear_layer:
     """
 
     def __init__(self, input_D, output_D):
-
         self.params = dict()
         self.gradient = dict()
 
-        ###############################################################################################
         # TODO: Use np.random.normal() with mean 0 and standard deviation 0.1 to initialize 
         #   - self.params['W'] 
         #   - self.params['b']
-        ###############################################################################################
+        mu, sigma = 0, 0.1  # mean and standard deviation
+        self.params['W'] = np.random.normal(loc=mu, scale=sigma, size=(input_D, output_D))
+        self.params['b'] = np.random.normal(loc=mu, scale=sigma, size=output_D)
 
-        
-
-        ###############################################################################################
         # TODO: Initialize the following two (gradients) with zeros
         #   - self.gradient['W']
         #   - self.gradient['b']
-        ###############################################################################################
-
-
-
+        self.gradient['W'] = np.zeros(input_D, output_D)
+        self.gradient['b'] = np.zeros(output_D)
 
     def forward(self, X):
-
         """
             The forward pass of the linear (affine/fully-connected) module.
 
@@ -63,14 +57,12 @@ class linear_layer:
             - forward_output: A N-by-output_D numpy array, where each 'row' is an output example/instance.
         """
 
-        ################################################################################
-        # TODO: Implement the linear forward pass. Store the result in forward_output  #
-        ################################################################################
+        # TODO: Implement the linear forward pass. Store the result in forward_output
+        forward_output = np.dot(X, self.params['W']) + self.params['b']
 
         return forward_output
 
     def backward(self, X, grad):
-
         """
             The backward pass of the linear (affine/fully-connected) module.
 
@@ -86,22 +78,22 @@ class linear_layer:
             - backward_output: A N-by-input_D numpy array, where each 'row' (say row i) is the partial derivatives of the mini-batch loss w.r.t. X[i].
         """
 
-        #################################################################################################
         # TODO: Implement the backward pass (i.e., compute the following three terms)
         #   - self.gradient['W'] (input_D-by-output_D numpy array, the gradient of the mini-batch loss w.r.t. self.params['W'])
         #   - self.gradient['b'] (1-by-output_D numpy array, the gradient of the mini-batch loss w.r.t. self.params['b'])
         #   - backward_output (N-by-input_D numpy array, the gradient of the mini-batch loss w.r.t. X)
         # only return backward_output, but need to compute self.gradient['W'] and self.gradient['b']
-        #################################################################################################
 
+        N, _ = X.shape
+        self.gradient['W'] = np.dot(X.T, grad)
+        self.gradient['b'] = np.sum(grad, axis=0) / N
+        backward_output = np.dot(grad, self.params['W'].T)
 
         return backward_output
 
 
-
 # 2. ReLU Activation
 class relu:
-
     """
         The relu (rectified linear unit) module.
 
@@ -114,7 +106,6 @@ class relu:
         self.mask = None
 
     def forward(self, X):
-
         """
             The forward pass of the relu (rectified linear unit) module.
 
@@ -125,15 +116,16 @@ class relu:
             - forward_output: A numpy array of the same shape of X
         """
 
-        ################################################################################
-        # TODO: Implement the relu forward pass. Store the result in forward_output    #
-        ################################################################################
-        
+        # TODO: Implement the relu forward pass. Store the result in forward_output
+        # Record the locations of x > 0
+        self.mask = (X > 0.0)
+        # Reserve X so that X will not be destroyed
+        forward_output = X.copy()
+        forward_output[forward_output <= 0.0] = 0.0
 
         return forward_output
 
     def backward(self, X, grad):
-
         """
             The backward pass of the relu (rectified linear unit) module.
 
@@ -146,11 +138,9 @@ class relu:
             - backward_output: A numpy array of the same shape as X, where each element is the partial derivative of the mini-batch loss w.r.t. the corresponding element in  X.
         """
 
-        ####################################################################################################
         # TODO: Implement the backward pass
         # You can use the mask created in the forward step.
-        ####################################################################################################
-
+        backward_output = np.multiply(self.mask, grad)
 
         return backward_output
 
@@ -159,7 +149,6 @@ class relu:
 class tanh:
 
     def forward(self, X):
-
         """
             Input:
             - X: A numpy array of arbitrary shape.
@@ -168,15 +157,13 @@ class tanh:
             - forward_output: A numpy array of the same shape of X
         """
 
-        ################################################################################
         # TODO: Implement the tanh forward pass. Store the result in forward_output
         # You can use np.tanh()
-        ################################################################################
+        forward_output = np.tanh(X)
 
         return forward_output
 
     def backward(self, X, grad):
-
         """
             Input:
             - X: A numpy array of arbitrary shape, the input to the forward pass.
@@ -186,18 +173,15 @@ class tanh:
             - backward_output: A numpy array of the same shape as X, where each element is the partial derivative of the mini-batch loss w.r.t. the corresponding element in  X.
         """
 
-        ####################################################################################################
         # TODO: Implement the backward pass
         # Derivative of tanh(z) is (1 - tanh(z)^2)
-        ####################################################################################################
-
+        backward_output = np.multiply(grad, (1 - np.power(np.tanh(X), 2)))
 
         return backward_output
 
 
 # 4. Dropout
 class dropout:
-
     """
         It is built up with one argument:
         - r: the dropout rate
@@ -224,15 +208,13 @@ class dropout:
             - forward_output: A numpy array of the same shape of X (the output of dropout)
         """
 
-        ################################################################################
-        #  TODO: We provide the forward pass to you. You only need to understand it.   #
-        ################################################################################
-
+        #  TODO: We provide the forward pass to you. You only need to understand it.
         if is_train:
             self.mask = (np.random.uniform(0.0, 1.0, X.shape) >= self.r).astype(float) * (1.0 / (1.0 - self.r))
         else:
             self.mask = np.ones(X.shape)
         forward_output = np.multiply(X, self.mask)
+
         return forward_output
 
     def backward(self, X, grad):
@@ -246,20 +228,15 @@ class dropout:
             Return:
             - backward_output: A numpy array of the same shape as X, where each element is the partial derivative of the mini-batch loss w.r.t. the corresponding element in X.
         """
-
-        ####################################################################################################
         # TODO: Implement the backward pass
         # You can use the mask created in the forward step
-        ####################################################################################################
-
+        backward_output = np.multiply(grad, self.mask)
 
         return backward_output
 
 
-
 # 5. Mini-batch Gradient Descent Optimization
 def miniBatchGradientDescent(model, momentum, _alpha, _learning_rate):
-
     for module_name, module in model.items():
 
         # check if a module has learnable parameters
@@ -269,33 +246,23 @@ def miniBatchGradientDescent(model, momentum, _alpha, _learning_rate):
                 g = module.gradient[key]
 
                 if _alpha <= 0.0:
-                    ####################################################################################
                     # TODO: update the model parameter module.params[key] by a step of gradient descent.
                     # Note again that the gradient is stored in g already.
-                    ####################################################################################
-
-
-
-
+                    raise NotImplementedError
                 else:
-                    ###################################################################################################
                     # TODO: Update the model parameter module.params[key] by a step of gradient descent with momentum.
                     # Access the previous momentum by momentum[module_name + '_' + key], and then update it directly.
-                    ###################################################################################################
-
-
+                    raise NotImplementedError
 
     return model
 
 
-
 def main(main_params):
-
     ### set the random seed. DO NOT MODIFY. ###
     np.random.seed(int(main_params['random_seed']))
 
     ### data processing ###
-    Xtrain, Ytrain, Xval, Yval , _, _ = data_loader_mnist(dataset = main_params['input_file'])
+    Xtrain, Ytrain, Xval, Yval, _, _ = data_loader_mnist(dataset=main_params['input_file'])
     N_train, d = Xtrain.shape
     N_val, _ = Xval.shape
 
@@ -328,17 +295,16 @@ def main(main_params):
     _dropout_rate = float(main_params['dropout_rate'])
     _activation = main_params['activation']
 
-
     if _activation == 'relu':
         act = relu
     else:
         act = tanh
 
     # create objects (modules) from the module classes
-    model['L1'] = linear_layer(input_D = d, output_D = num_L1)
+    model['L1'] = linear_layer(input_D=d, output_D=num_L1)
     model['nonlinear1'] = act()
-    model['drop1'] = dropout(r = _dropout_rate)
-    model['L2'] = linear_layer(input_D = num_L1, output_D = num_L2)
+    model['drop1'] = dropout(r=_dropout_rate)
+    model['L2'] = linear_layer(input_D=num_L1, output_D=num_L2)
     model['loss'] = softmax_cross_entropy()
 
     # Momentum
@@ -370,23 +336,23 @@ def main(main_params):
         val_loss = 0.0
 
         for i in range(int(np.floor(N_train / minibatch_size))):
-
             # get a mini-batch of data
-            x, y = trainSet.get_example(idx_order[i * minibatch_size : (i + 1) * minibatch_size])
+            x, y = trainSet.get_example(idx_order[i * minibatch_size: (i + 1) * minibatch_size])
 
             ### forward pass ###
             a1 = model['L1'].forward(x)
             h1 = model['nonlinear1'].forward(a1)
-            d1 = model['drop1'].forward(h1, is_train = True)
+            d1 = model['drop1'].forward(h1, is_train=True)
             a2 = model['L2'].forward(d1)
             loss = model['loss'].forward(a2, y)
 
             ### backward pass ###
             grad_a2 = model['loss'].backward(a2, y)
-            ######################################################################################
+
             # TODO: Call the backward methods of every layer in the model in reverse order.
             # We have given the first and last backward calls (above and below this TODO block).
-            ######################################################################################
+            # FIXME
+            grad_a1 = grad_a2
             grad_x = model['L1'].backward(x, grad_a1)
 
             ### gradient_update ###
@@ -394,13 +360,12 @@ def main(main_params):
 
         ### Computing training accuracy and obj ###
         for i in range(int(np.floor(N_train / minibatch_size))):
-
             x, y = trainSet.get_example(np.arange(i * minibatch_size, (i + 1) * minibatch_size))
 
             ### forward pass ###
             a1 = model['L1'].forward(x)
             h1 = model['nonlinear1'].forward(a1)
-            d1 = model['drop1'].forward(h1, is_train = False)
+            d1 = model['drop1'].forward(h1, is_train=False)
             a2 = model['L2'].forward(d1)
             loss = model['loss'].forward(a2, y)
             train_loss += loss
@@ -416,13 +381,12 @@ def main(main_params):
 
         ### Computing validation accuracy ###
         for i in range(int(np.floor(N_val / minibatch_size))):
-
             x, y = valSet.get_example(np.arange(i * minibatch_size, (i + 1) * minibatch_size))
 
             ### forward pass ###
             a1 = model['L1'].forward(x)
             h1 = model['nonlinear1'].forward(a1)
-            d1 = model['drop1'].forward(h1, is_train = False)
+            d1 = model['drop1'].forward(h1, is_train=False)
             a2 = model['L2'].forward(d1)
             loss = model['loss'].forward(a2, y)
             val_loss += loss
@@ -447,11 +411,8 @@ def main(main_params):
     return train_loss_record, val_loss_record
 
 
-
 if __name__ == "__main__":
-
-
-    ###################################################################################### 
+    ######################################################################################
     # These are the default arguments used to run your code.
     # These parameters will be changed while grading.
     # You can modify them to test your code (this does not affect the grading as long as
