@@ -106,7 +106,7 @@ class KMeans():
         # Obtain the centroid matrix
         i, centroids = 1, np.array(x[self.centers[0]]).reshape(1, -1)
         while i < len(self.centers):
-            centroids = np.row_stack(centroids, np.array(x[self.centers[i]]))
+            centroids = np.row_stack((centroids, x[self.centers[i]]))
             i += 1
 
         # TODO: Update means and membership until convergence 
