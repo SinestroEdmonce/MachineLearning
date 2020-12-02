@@ -1,11 +1,12 @@
 import numpy as np
 
+
 #################################
 # DO NOT IMPORT OHTER LIBRARIES
 #################################
 
 
-def euclidean_distances(x, y):
+def squared_euclidean_distances(x, y):
     """
         Compute pairwise (squared) Euclidean distances.
     :param x: (M, D), a numpy array
@@ -15,8 +16,8 @@ def euclidean_distances(x, y):
     # Have a common dimension D
     assert x.shape[1] == y.shape[1]
 
-    x_square = np.sum(x*x, axis=1, keepdims=True)
-    y_square = np.sum(y*y, axis=1, keepdims=True).T
+    x_square = np.sum(x * x, axis=1, keepdims=True)
+    y_square = np.sum(y * y, axis=1, keepdims=True).T
     distances = np.dot(x, y.T)
 
     # Use inplace operation to accelerate
@@ -53,7 +54,7 @@ def get_k_means_plus_plus_center_indices(n, n_cluster, x, generator=np.random):
     # Pick the rest centers
     while len(centers) < n_cluster:
         # Obtain distances from any sample to all centroids
-        distances = euclidean_distances(x=x, y=centroids)
+        distances = squared_euclidean_distances(x=x, y=centroids)
 
         centers.append(np.argmax(np.min(distances, axis=1)))
         centroids = np.row_stack((centroids, x[centers[-1]]))
@@ -68,7 +69,6 @@ def get_lloyd_k_means(n, n_cluster, x, generator):
 
 
 class KMeans():
-
     """
         Class KMeans:
         Attr:
@@ -76,11 +76,13 @@ class KMeans():
             max_iter - maximum updates for kmeans clustering (Int)
             e - error tolerance (Float)
     """
+
     def __init__(self, n_cluster, max_iter=100, e=0.0001, generator=np.random):
         self.n_cluster = n_cluster
         self.max_iter = max_iter
         self.e = e
         self.generator = generator
+        self.centers = []
 
     def fit(self, x, centroid_func=get_lloyd_k_means):
 
@@ -95,19 +97,45 @@ class KMeans():
                   - number of times you update the assignment, an Int (at most self.max_iter)
         """
         assert len(x.shape) == 2, "fit function takes 2-D numpy arrays as input"
+
         self.generator.seed(42)
         N, D = x.shape
 
         self.centers = centroid_func(len(x), self.n_cluster, x, self.generator)
-        ###################################################################
+
+        # Obtain the centroid matrix
+        i, centroids = 1, np.array(x[self.centers[0]]).reshape(1, -1)
+        while i < len(self.centers):
+            centroids = np.row_stack(centroids, np.array(x[self.centers[i]]))
+            i += 1
+
         # TODO: Update means and membership until convergence 
         #   (i.e., average K-mean objective changes less than self.e)
         #   or until you have made self.max_iter updates.
-        ###################################################################
+        objective, itr, clustering = 0.0, 0, None
+        while itr < self.max_iter:
+            # Obtain all clusters based on the assignment
+            distances = squared_euclidean_distances(x=x, y=centroids)
+            clustering = np.argmin(distances, axis=1)
+
+            # Generate one hot matrix
+            assignment = np.eye(N, self.n_cluster)[clustering]
+
+            # Calculate objective
+            loss = np.sum((x - np.dot(assignment, centroids)) ** 2)
+            if objective - loss < self.e:
+                break
+
+            # Update centroids
+            counter = np.sum(assignment, axis=0)
+            updated = np.dot(assignment.T, x) / counter[:, None]
+            centroids = updated
+
+        # Finish maximum iteration or loss is tolerant
+        return centroids, clustering, itr
 
 
-class KMeansClassifier():
-
+class KMeansClassifier:
     """
         Class KMeansClassifier:
         Attr:
@@ -200,11 +228,12 @@ def transform_image(image, code_vectors):
     # TODO
     # - replace each pixel (a 3-dimensional point) by its nearest code vector
     ##############################################################################
-    
+
+
 if __name__ == '__main__':
     np.random.seed(40)
     n = 10
-    x = np.array([[2,2],[3,1],[3,2],[4,2],[6,7],[7,7],[6,8],[0,6],[1,6],[1,7]], dtype=np.float)
+    x = np.array([[2, 2], [3, 1], [3, 2], [4, 2], [6, 7], [7, 7], [6, 8], [0, 6], [1, 6], [1, 7]], dtype=np.float)
     n_cluster = 3
     centers = get_k_means_plus_plus_center_indices(n, n_cluster, x)
     print(centers)
