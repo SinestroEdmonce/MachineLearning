@@ -171,5 +171,5 @@ def kmeans_classification_builder(centroid_func, x_train, x_test, y_train, y_tes
 
 if __name__ == '__main__':
     kmeans_toy()
-    kmeans_image_compression()
-    kmeans_classification()
+    # kmeans_image_compression()
+    # kmeans_classification()

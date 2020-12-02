@@ -48,7 +48,7 @@ def get_k_means_plus_plus_center_indices(n, n_cluster, x, generator=np.random):
 
     centers = []
     # Pick the first center
-    centers.append(generator.choice(n))
+    centers.append(generator.randint(0, n))
     centroids = np.array(x[centers[0]]).reshape(1, -1)
 
     # Pick the rest centers
@@ -109,10 +109,10 @@ class KMeans():
             centroids = np.row_stack((centroids, x[self.centers[i]]))
             i += 1
 
-        # TODO: Update means and membership until convergence 
+        # TODO: Update means and membership until convergence
         #   (i.e., average K-mean objective changes less than self.e)
         #   or until you have made self.max_iter updates.
-        objective, itr, clustering = 0.0, 0, None
+        objective, itr, clustering = None, 0, None
         while itr < self.max_iter:
             # Obtain all clusters based on the assignment
             distances = squared_euclidean_distances(x=x, y=centroids)
@@ -121,15 +121,19 @@ class KMeans():
             # Generate one hot matrix
             assignment = np.eye(N, self.n_cluster)[clustering]
 
-            # Calculate objective
+            # Calculate objective and update it
             loss = np.sum((x - np.dot(assignment, centroids)) ** 2)
-            if objective - loss < self.e:
+            if objective is not None and objective - loss < self.e:
                 break
+            objective = loss
 
             # Update centroids
             counter = np.sum(assignment, axis=0)
             updated = np.dot(assignment.T, x) / counter[:, None]
             centroids = updated
+
+            # Update iteration
+            itr += 1
 
         # Finish maximum iteration or loss is tolerant
         return centroids, clustering, itr
