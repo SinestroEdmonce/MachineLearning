@@ -112,7 +112,7 @@ class KMeans():
         # TODO: Update means and membership until convergence
         #   (i.e., average K-mean objective changes less than self.e)
         #   or until you have made self.max_iter updates.
-        objective, itr, clustering = None, 0, None
+        objective, itr, clustering = 0.0, 0, None
         while itr < self.max_iter:
             # Obtain all clusters based on the assignment
             distances = squared_euclidean_distances(x=x, y=centroids)
@@ -123,7 +123,7 @@ class KMeans():
 
             # Calculate objective and update it
             loss = np.sum((x - np.dot(assignment, centroids)) ** 2)
-            if objective is not None and objective - loss < self.e:
+            if np.abs(objective - loss) < self.e:
                 break
             objective = loss
 
