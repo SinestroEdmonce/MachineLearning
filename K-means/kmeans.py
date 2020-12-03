@@ -55,8 +55,16 @@ def get_k_means_plus_plus_center_indices(n, n_cluster, x, generator=np.random):
     while len(centers) < n_cluster:
         # Obtain distances from any sample to all centroids
         distances = squared_euclidean_distances(x=x, y=centroids)
+        chosen = np.min(distances, axis=1)
+        cumulative, r, probs = 0.0, generator.rand(), chosen / np.sum(chosen)
 
-        centers.append(np.argmax(np.min(distances, axis=1)))
+        # Sampling
+        for i in range(n):
+            cumulative += probs[i]
+            if cumulative > r:
+                centers.append(i)
+                break
+
         centroids = np.row_stack((centroids, x[centers[-1]]))
 
     # DO NOT CHANGE CODE BELOW THIS LINE
@@ -104,10 +112,9 @@ class KMeans():
         self.centers = centroid_func(len(x), self.n_cluster, x, self.generator)
 
         # Obtain the centroid matrix
-        i, centroids = 1, np.array(x[self.centers[0]]).reshape(1, -1)
-        while i < len(self.centers):
-            centroids = np.row_stack((centroids, x[self.centers[i]]))
-            i += 1
+        centroids = np.zeros((self.n_cluster, D))
+        for i in range(len(self.centers)):
+            centroids[i] = x[self.centers[i]]
 
         # TODO: Update means and membership until convergence
         #   (i.e., average K-mean objective changes less than self.e)
@@ -174,14 +181,32 @@ class KMeansClassifier:
 
         self.generator.seed(42)
         N, D = x.shape
-        ################################################################
+
         # TODO:
         # - assign means to centroids (use KMeans class you implemented, 
         #      and "fit" with the given "centroid_func" function)
         # - assign labels to centroid_labels
-        ################################################################
-        # FIXME
-        raise NotImplementedError
+        kmeans = KMeans(n_cluster=self.n_cluster, max_iter=self.max_iter, e=self.e, generator=self.generator)
+        centroids, clustering, itr = kmeans.fit(x=x, centroid_func=centroid_func)
+
+        # Voters for every cluster
+        polling = []
+        for _ in range(self.n_cluster):
+            polling.append({})
+
+        # Collect votes for every cluster
+        for cluster, label in zip(clustering, y):
+            if label not in polling[cluster]:
+                polling[cluster][label] = 0
+
+            polling[cluster][label] += 1
+
+        # Vote
+        centroid_labels = []
+        for poll in polling:
+            centroid_labels.append(max(poll, key=poll.get))
+        centroid_labels = np.array(centroid_labels)
+
         # DO NOT CHANGE CODE BELOW THIS LINE
         self.centroid_labels = centroid_labels
         self.centroids = centroids
@@ -205,11 +230,16 @@ class KMeansClassifier:
 
         self.generator.seed(42)
         N, D = x.shape
-        ##########################################################################
+
         # TODO:
         # - for each example in x, predict its label using 1-NN on the stored 
         #    dataset (self.centroids, self.centroid_labels)
-        ##########################################################################
+        distances = squared_euclidean_distances(x=x, y=self.centroids)
+        clustering = np.argmin(distances, axis=1)
+
+        y_predict = self.centroid_labels[clustering]
+
+        return np.array(y_predict)
 
 
 def transform_image(image, code_vectors):
@@ -228,16 +258,16 @@ def transform_image(image, code_vectors):
 
     assert code_vectors.shape[1] == 3 and len(code_vectors.shape) == 2, \
         'code_vectors should be a 2-D array with size (?,3)'
-    ##############################################################################
+
     # TODO
     # - replace each pixel (a 3-dimensional point) by its nearest code vector
-    ##############################################################################
+    N, M, D = image.shape
+    flatten = image.reshape(N*M, D)
 
+    # Assign every pixel to its nearest code vector
+    distances = squared_euclidean_distances(x=flatten, y=code_vectors)
+    assignment = np.argmin(distances, axis=1)
+    compressed = code_vectors[assignment].reshape(N, M, D)
 
-if __name__ == '__main__':
-    np.random.seed(40)
-    n = 10
-    x = np.array([[2, 2], [3, 1], [3, 2], [4, 2], [6, 7], [7, 7], [6, 8], [0, 6], [1, 6], [1, 7]], dtype=np.float)
-    n_cluster = 3
-    centers = get_k_means_plus_plus_center_indices(n, n_cluster, x)
-    print(centers)
+    return compressed
+
