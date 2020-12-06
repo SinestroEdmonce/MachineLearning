@@ -136,8 +136,7 @@ class HMM:
         Compute the probability for most likely path
 
         :param Osequence: (1*T) A numpy array of observation sequence with length T
-        :return: prob: (num_state*T) A numpy array where prob[i, t-1] =
-                    max P(Z_t = s, Z_{1:t−1} = z_{1:t−1}, X_{1:t} = x_{1:t})
+        :return: sigma, delta
         """
         S, T, O = len(self.pi), len(Osequence), self.find_item(Osequence)
 
@@ -170,10 +169,10 @@ class HMM:
         sigma, delta = self.most_likely_path_prob(Osequence=Osequence)
 
         z_t = np.argmax(sigma[:, T - 1])
-        path.append(self.find_key(self.obs_dict, z_t))
-        for t in range(T - 2, -1, -1):
-            z_t = delta[z_t, t + 1]
-            path.append(self.find_key(self.obs_dict, z_t))
+        path.append(self.find_key(self.state_dict, z_t))
+        for t in range(T - 1, 0, -1):
+            z_t = delta[z_t, t]
+            path.append(self.find_key(self.state_dict, z_t))
 
         path = path[::-1]
         return path

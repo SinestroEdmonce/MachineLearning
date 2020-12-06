@@ -43,28 +43,23 @@ def model_training(train_data, tags):
     #   When estimating the entries of A and B, if  
     #   "divided by zero" is encountered, set the entry 
     #   to be zero.
-    tag2word, tag2tag = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
-    initial, transition, tag_counter = defaultdict(int), defaultdict(int), defaultdict(int)
+
     for sentence in train_data:
         prev = None
-        initial[sentence.tags[0]] += 1
+        pi[tag2idx[sentence.tags[0]]] += 1.0
         for i, word in enumerate(sentence.words):
             tag = sentence.tags[i]
-            tag_counter[tag] += 1
-            tag2word[tag][word] += 1
-            tag2tag[prev][tag] += 1
-            transition[prev] += 1
+            # Pre-computing B
+            B[tag2idx[tag], word2idx[word]] += 1.0
+            # Pre-computing A
+            if prev is not None:
+                A[tag2idx[prev], tag2idx[tag]] += 1.0
             prev = tag
 
     # Compute the parameters
-    for tag in tags:
-        pi[tag2idx[tag]] = initial[tag] / len(train_data)
-
-        for next in tags:
-            A[tag2idx[tag], tag2idx[next]] = (tag2tag[tag][next] / transition[tag]) if transition[tag] != 0 else 0
-
-        for word, count in tag2word[tag].items():
-            B[tag2idx[tag], word2idx[word]] = (count / tag_counter[tag]) if tag_counter[tag] != 0 else 0
+    pi = pi/np.sum(pi)
+    A = A / (np.sum(A, axis=1)[:, None])
+    B = B / (np.sum(B, axis=1)[:, None])
 
     # DO NOT MODIFY BELOW
     model = HMM(pi, A, B, word2idx, tag2idx)
@@ -104,6 +99,7 @@ def sentence_tagging(test_data, model, tags):
 
 # DO NOT MODIFY BELOW
 def get_unique_words(data):
+
     unique_words = {}
 
     for line in data:
