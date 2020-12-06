@@ -19,7 +19,7 @@ def model_training(train_data, tags):
 
     # unique_words.keys() contains all unique words
     unique_words = get_unique_words(train_data)
-    
+
     word2idx = {}
     tag2idx = dict()
     S = len(tags)
@@ -29,8 +29,8 @@ def model_training(train_data, tags):
     #   - from a tag to its index 
     # The order you index the word/tag does not matter, 
     # as long as the indices are 0, 1, 2, ...
-    for idx, word in enumerate(word2idx.keys()):
-        word2idx[idx] = word
+    for idx, word in enumerate(unique_words.keys()):
+        word2idx[word] = idx
 
     for idx, tag in enumerate(tags):
         tag2idx[tag] = idx
@@ -43,7 +43,7 @@ def model_training(train_data, tags):
     #   When estimating the entries of A and B, if  
     #   "divided by zero" is encountered, set the entry 
     #   to be zero.
-    tag2word, tag2tag = defaultdict(lambda: defaultdict(int))
+    tag2word, tag2tag = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
     initial, transition, tag_counter = defaultdict(int), defaultdict(int), defaultdict(int)
     for sentence in train_data:
         prev = None
@@ -94,7 +94,7 @@ def sentence_tagging(test_data, model, tags):
                 index += 1
                 expanded += 1
 
-    model.B = np.column_stack(model.B, np.full((S, expanded), 1e-6))
+    model.B = np.column_stack((model.B, np.full((S, expanded), 1e-6)))
 
     for sentence in test_data:
         tagging.append(model.viterbi(Osequence=sentence.words))
@@ -104,7 +104,6 @@ def sentence_tagging(test_data, model, tags):
 
 # DO NOT MODIFY BELOW
 def get_unique_words(data):
-
     unique_words = {}
 
     for line in data:

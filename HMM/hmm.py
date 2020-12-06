@@ -141,15 +141,15 @@ class HMM:
         """
         S, T, O = len(self.pi), len(Osequence), self.find_item(Osequence)
 
-        sigma, delta = np.zeros([S, T]), np.zeros([S, T])
+        sigma, delta = np.zeros([S, T]), np.zeros([S, T], dtype=np.int64)
         # Recursively resolve probability for most likely path
         sigma[:, 0] = np.multiply(self.pi, self.B[:, O[0]])
         for t in range(1, T):
             for s in range(S):
                 # State transition
-                prod = np.multiply(self.A[s, :], sigma[:, t - 1])
+                prod = np.multiply(self.A[:, s], sigma[:, t - 1])
 
-                sigma[s, t] = np.multiply(self.B[s, O[t]], np.max(prod))
+                sigma[s, t] = self.B[s, O[t]] * np.max(prod)
                 delta[s, t] = np.argmax(prod)
 
         return sigma, delta
@@ -172,9 +172,10 @@ class HMM:
         z_t = np.argmax(sigma[:, T - 1])
         path.append(self.find_key(self.obs_dict, z_t))
         for t in range(T - 2, -1, -1):
-            z_t = delta[z_t, t]
+            z_t = delta[z_t, t + 1]
             path.append(self.find_key(self.obs_dict, z_t))
 
+        path = path[::-1]
         return path
 
     # DO NOT MODIFY CODE BELOW
